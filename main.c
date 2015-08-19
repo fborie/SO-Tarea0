@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
         int r_flag_count = count_reverse_flags(argc,argv);
         if(r_flag_count == 0){ // without reverse flag
             if(argc > 1){//if there are some arguments
-                size_t max_lines = 10;
+                size_t max_lines = 20;
                 char ** lines = malloc(max_lines*sizeof(char*)); 
                 size_t lines_counter = 0;
                 int i;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
                             return 0;
                         }
                          
-                        size_t current_max = 8;
+                        size_t current_max = 70;
                         size_t old_max;
                         char * buffer = malloc(sizeof(char)*current_max); //buffer to store thee current line of the reading file
                         
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
         
         else{ //with reverse flag
             char ** paths = extract_paths_from_argv(argc, r_flag_count,argv);
-            size_t max_lines = 10;
+            size_t max_lines = 20;
             char ** lines = malloc(max_lines*sizeof(char*)); 
             size_t lines_counter = 0;
             const size_t num_files = argc-r_flag_count - 1;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
                         return 0;
                     }
                          
-                     size_t current_max = 8;
+                     size_t current_max = 70;
                      size_t old_max;
                      char * buffer = malloc(sizeof(char)*current_max); //buffer to store thee current line of the reading file
                         
