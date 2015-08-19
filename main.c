@@ -60,7 +60,7 @@ char ** extract_paths_from_argv(int argc, int r_count, char* argv[]){
 
 int main(int argc, char *argv[]){
     if(argc == 1){
-        fprintf(stdout,"No arguments have been provided! Exiting ...\n");
+        fprintf(stderr,"No arguments have been provided! Exiting ...\n");
         return 1;
     }
     else{
@@ -73,12 +73,11 @@ int main(int argc, char *argv[]){
                 int i;
                 for(i = 1; i<argc;i++){
                     if(is_there_file_from_path(argv[i])){
-                        fprintf(stdout,"FILE %s  FOUND!\n",argv[i]);
                         
                         FILE * file;
                         file = fopen(argv[i],"r");
                         if(file == NULL){
-                            fprintf(stdout,"COULDN'T OPEN THE FILE! Exiting ...\n");
+                            fprintf(stderr,"COULDN'T OPEN %s FILE! Exiting ...\n",argv[i]);
                             return 0;
                         }
                          
@@ -95,11 +94,12 @@ int main(int argc, char *argv[]){
                                                                                             //dado que fgets lee n-1 chars del stream y ademas escribe el nul char al final
                                 old_max = current_max;
                                 current_max *= 2;
-                                buffer = realloc(buffer,sizeof(char)*current_max);
-                                if(buffer == NULL){
-                                    fprintf(stdout,"ERROR REALLOC BUFFER! Exiting ...");
+                                char * tmp_buffer = realloc(buffer,sizeof(char)*current_max);
+                                if(tmp_buffer == NULL){
+                                    fprintf(stderr,"ERROR REALLOC BUFFER! Exiting ...");
                                     return 1;
                                 }
+                                buffer = tmp_buffer;
                                 lines_counter--; //go back one line
                                 fseek(file,-old_max+1,SEEK_CUR); // plus 1 for not get out of the bounds of the line
                             }
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
                                 max_lines *= 2;
                                 char ** tmp_lines = realloc(lines,max_lines*sizeof(char*));
                                 if(tmp_lines == NULL){
-                                    fprintf(stdout,"ERROR REALLOC BUFFER! Exiting ...");
+                                    fprintf(stderr,"ERROR REALLOC BUFFER! Exiting ...");
                                     return 1;
                                 }
                                 lines = tmp_lines;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
                         fclose(file);
                     }
                     else{
-                        fprintf(stdout,"FILE NOT FOUND OR NO READ PERMS! Exiting ...\n");
+                        fprintf(stderr,"%s NOT FOUND OR NO READ PERMS! Exiting ...\n",argv[i]);
                         return 1;
                     }
                 }
@@ -128,8 +128,8 @@ int main(int argc, char *argv[]){
                 free(lines);
             }
             else{ 
-                printf("NO PATHS PROVIDED! Exiting ...\n");
-                return 0;
+                fprintf(stderr,"NO PATHS PROVIDED! Exiting ...\n");
+                return 1;
             }
         }         
         
@@ -138,13 +138,14 @@ int main(int argc, char *argv[]){
             size_t max_lines = 10;
             char ** lines = malloc(max_lines*sizeof(char*)); 
             size_t lines_counter = 0;
+            const size_t num_files = argc-r_flag_count - 1;
             int i;
-            for(i = 0; i<(argc-r_flag_count-1);i++){
+            for(i = 0; i<num_files;i++){
                 if(is_there_file_from_path(paths[i])){
                     FILE * file;
                     file = fopen(paths[i],"r");
                     if(file == NULL){
-                        fprintf(stdout,"COULDN'T OPEN THE FILE! Exiting ...\n");
+                        fprintf(stderr,"COULDN'T OPEN %s FILE! Exiting ...\n",paths[i]);
                         return 0;
                     }
                          
@@ -163,7 +164,7 @@ int main(int argc, char *argv[]){
                             current_max *= 2;
                             buffer = realloc(buffer,sizeof(char)*current_max);
                             if(buffer == NULL){
-                                fprintf(stdout,"ERROR REALLOC BUFFER! Exiting ...");
+                                fprintf(stderr,"ERROR REALLOC BUFFER! Exiting ...");
                                 return 1;
                             }
                             lines_counter--; //go back one line
@@ -173,7 +174,7 @@ int main(int argc, char *argv[]){
                             max_lines *= 2;
                             char ** tmp_lines = realloc(lines,max_lines*sizeof(char*));
                             if(tmp_lines == NULL){
-                                fprintf(stdout,"ERROR REALLOC BUFFER! Exiting ...");
+                                fprintf(stderr,"ERROR REALLOC BUFFER! Exiting ...");
                                 return 1;
                             }
                             lines = tmp_lines;
@@ -182,9 +183,15 @@ int main(int argc, char *argv[]){
                     fclose(file);
                 }
                 else{
-                    fprintf(stdout,"FILE NOT FOUND OR NO READ PERMS! Exiting ...\n");
+                    fprintf(stderr,"%s NOT FOUND OR NO READ PERMS! Exiting ...\n",paths[i]);
+                    return 1;
                 }
-            }       
+            }
+            for(i=0;i<num_files;i++){
+                free(paths[i]);
+            }
+            free(paths);
+
             qsort(lines,lines_counter,sizeof(char*),compare_func_reverse);
             for(i=0;i<lines_counter;i++){
                 printf("%s",lines[i]);
